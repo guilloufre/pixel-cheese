@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>픽셀 치즈 백과</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css">
+<style>
+:root{
+  --bg:#f5efe2; --panel:#fffaf0; --panel2:#efe6d3; --ink:#2e2925; --muted:#7d7266;
+  --line:#5e5248; --line-soft:#c2b4a0; --dot:#e6dccb; --accent:#d8b45c; --accent-soft:#f1dfa8; --shadow:#e0d6c3;
+  --px:4px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1f1c19; --panel:#2a2622; --panel2:#35302a; --ink:#efe6d6; --muted:#a89c8c;
+    --line:#8a7c6e; --line-soft:#5a5047; --dot:#26221e; --accent:#d8b45c; --accent-soft:#4a3f26; --shadow:#171513;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1f1c19; --panel:#2a2622; --panel2:#35302a; --ink:#efe6d6; --muted:#a89c8c;
+  --line:#8a7c6e; --line-soft:#5a5047; --dot:#26221e; --accent:#d8b45c; --accent-soft:#4a3f26; --shadow:#171513;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Galmuri11","Galmuri9",ui-monospace,"Apple SD Gothic Neo","Malgun Gothic",monospace;
+  font-size:14px; line-height:1.75; -webkit-font-smoothing:none;
+  background-image:radial-gradient(var(--dot) 1px, transparent 1px);
+  background-size:16px 16px;
+}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+/* pixel box: stepped corners via box-shadow */
+.px{
+  background:var(--panel); position:relative;
+  box-shadow:
+    0 calc(var(--px)*-1) 0 0 var(--line),
+    0 var(--px) 0 0 var(--line),
+    calc(var(--px)*-1) 0 0 0 var(--line),
+    var(--px) 0 0 0 var(--line),
+    var(--px) var(--px) 0 var(--px) var(--shadow);
+}
+header.top{padding:40px 0 24px}
+.brand{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.brand canvas{width:96px;height:96px}
+h1{font-family:"Galmuri14","Galmuri11",monospace;font-size:30px;margin:0;letter-spacing:1px;line-height:1.3}
+.sub{color:var(--muted);margin:4px 0 0}
+nav.tabs{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0 8px}
+nav.tabs a{
+  color:var(--ink);text-decoration:none;padding:6px 14px;background:var(--panel);
+  box-shadow:0 -3px 0 0 var(--line),0 3px 0 0 var(--line),-3px 0 0 0 var(--line),3px 0 0 0 var(--line);
+}
+nav.tabs a:hover{background:var(--accent-soft)}
+#theme{margin-left:auto;cursor:pointer;font:inherit;color:var(--ink);background:var(--panel);border:0;padding:6px 12px;
+  box-shadow:0 -3px 0 0 var(--line),0 3px 0 0 var(--line),-3px 0 0 0 var(--line),3px 0 0 0 var(--line);}
+section{margin:44px 0}
+h2{font-family:"Galmuri14","Galmuri11",monospace;font-size:20px;margin:0 0 18px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:12px;height:12px;background:var(--accent);box-shadow:3px 3px 0 var(--line)}
+.lead{padding:20px 22px;margin-bottom:28px}
+/* timeline */
+.timeline{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.tl{padding:14px 16px}
+.tl .y{display:inline-block;background:var(--accent-soft);padding:0 6px;font-size:12px}
+.tl b{display:block;margin:6px 0 2px}
+.tl p{margin:0;color:var(--muted);font-size:13px}
+.steps{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));counter-reset:s}
+.step{padding:14px;counter-increment:s}
+.step::before{content:counter(s,decimal-leading-zero);font-size:22px;color:var(--accent);display:block;line-height:1}
+.step b{display:block;margin:6px 0 2px}
+.step p{margin:0;font-size:13px;color:var(--muted)}
+.types{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.type{padding:14px}
+.type small{color:var(--muted)}
+/* toolbar */
+.toolbar{padding:16px;display:grid;gap:12px;margin-bottom:28px}
+.search{display:flex;gap:10px;align-items:center}
+.search input{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--panel2);border:0;padding:10px 12px;outline:none;
+  box-shadow:inset 3px 3px 0 var(--shadow)}
+.search input:focus{box-shadow:inset 3px 3px 0 var(--shadow),0 0 0 3px var(--accent)}
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.frow .lbl{color:var(--muted);font-size:12px;width:44px}
+.chip{font:inherit;font-size:13px;cursor:pointer;color:var(--ink);background:var(--panel2);border:0;padding:3px 10px;
+  box-shadow:0 -2px 0 0 var(--line),0 2px 0 0 var(--line),-2px 0 0 0 var(--line),2px 0 0 0 var(--line)}
+.chip[aria-pressed="true"]{background:var(--accent);color:#2e2925}
+.count{color:var(--muted);font-size:12px}
+/* cards */
+.grid{display:grid;gap:26px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.card{padding:16px;cursor:pointer;transition:transform .08s steps(2)}
+.card:hover,.card:focus-visible{transform:translate(-2px,-2px);outline:none;background:var(--accent-soft)}
+.card .ic{display:flex;justify-content:center;background:var(--panel2);padding:10px 0;margin-bottom:12px}
+.card canvas{width:96px;height:96px}
+.card h3{margin:0;font-size:16px;font-family:"Galmuri14","Galmuri11",monospace;font-weight:normal}
+.card .en{color:var(--muted);font-size:12px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:11px;padding:0 6px;background:transparent;color:var(--muted);box-shadow:0 0 0 2px var(--line-soft)}
+.meter{display:flex;gap:3px;margin-top:10px;align-items:center;font-size:11px;color:var(--muted)}
+.meter i{width:10px;height:10px;background:var(--panel2);box-shadow:0 0 0 2px var(--line-soft)}
+.meter i.on{background:var(--accent)}
+.empty{text-align:center;color:var(--muted);padding:40px}
+/* modal */
+dialog{border:0;padding:0;background:transparent;max-width:min(720px,calc(100vw - 32px));width:100%;color:var(--ink)}
+dialog::backdrop{background:rgba(30,26,22,.55)}
+.mbox{padding:24px;max-height:85vh;overflow:auto}
+.mhead{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.mhead canvas{width:128px;height:128px;background:var(--panel2);padding:8px}
+.mhead h3{margin:0;font-size:24px;font-family:"Galmuri14","Galmuri11",monospace;font-weight:normal}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:18px 0}
+.fact{background:var(--panel2);padding:8px 10px}
+.fact small{display:block;color:var(--muted);font-size:11px}
+.mbox h4{margin:18px 0 4px;font-size:14px;color:var(--muted)}
+.mbox p{margin:0}
+.close{position:absolute;top:12px;right:14px;font:inherit;cursor:pointer;background:var(--panel2);color:var(--ink);border:0;width:32px;height:32px;
+  box-shadow:0 0 0 2px var(--line)}
+.mapbox{padding:16px}
+.mapwrap{position:relative;width:100%}
+.mapwrap canvas{width:100%;height:auto;display:block}
+.pin{position:absolute;transform:translate(-50%,-100%);font:inherit;font-size:12px;cursor:pointer;border:0;padding:1px 6px;white-space:nowrap;
+  background:var(--panel);color:var(--ink);box-shadow:0 0 0 2px var(--line-soft)}
+.pin.main{box-shadow:0 0 0 2px var(--line)}
+.pin::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-3px;width:6px;height:4px;background:var(--line)}
+.pin b{color:var(--muted);font-weight:normal;margin-left:3px}
+.pin:hover,.pin.on{background:var(--accent);color:#2e2925}
+.pin:hover b,.pin.on b{color:#2e2925}
+.pin.edge{transform:translate(0,-50%);box-shadow:0 0 0 2px var(--line);opacity:.85}
+.pin.edge::after{display:none}
+.pin.main{font-size:15px;padding:3px 10px;background:var(--accent);color:#2e2925;z-index:2}
+.pin.main b{color:#2e2925}
+.maphint{margin:10px 0 0;color:var(--muted);font-size:12px}
+@media (max-width:640px){.pin{font-size:10px;padding:0 3px}.pin b{display:none}}
+.tips{padding:16px 22px}
+.tips li{margin:6px 0}
+footer{color:var(--muted);text-align:center;padding:30px 0 50px;font-size:12px}
+@media (max-width:600px){ nav.tabs{flex-wrap:nowrap;overflow-x:auto;padding:4px;gap:10px} nav.tabs a,#theme{white-space:nowrap;flex:none} }
+@media (max-width:520px){ h1{font-size:22px} .brand canvas{width:64px;height:64px} #theme{margin-left:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <canvas id="logo" width="16" height="16"></canvas>
+      <div>
+        <h1>픽셀 치즈 백과</h1>
+        <p class="sub">세계의 치즈 28종을 한 칸 한 칸 기록한 작은 도감</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <a href="#about">치즈란?</a>
+      <a href="#history">역사</a>
+      <a href="#make">만드는 법</a>
+      <a href="#map">치즈 지도</a>
+      <a href="#dex">치즈 도감</a>
+      <a href="#tips">보관 팁</a>
+      <button id="theme" type="button">◐ 테마</button>
+    </nav>
+  </header>
+
+  <section id="about">
+    <h2>치즈란?</h2>
+    <div class="px lead" id="lead"></div>
+    <div class="types" id="types"></div>
+  </section>
+
+  <section id="history">
+    <h2>치즈의 역사</h2>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section id="make">
+    <h2>치즈 만드는 과정</h2>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section id="map">
+    <h2>치즈 지도</h2>
+    <div class="px mapbox">
+      <div class="mapwrap" id="mapwrap"><canvas id="mapcv" width="98" height="54" role="img" aria-label="치즈 원산지 픽셀 지도"></canvas></div>
+      <p class="maphint">치즈의 나라 프랑스를 중심으로 — 핀을 누르면 그 나라의 치즈만 도감에 표시돼요.</p>
+    </div>
+  </section>
+
+  <section id="dex">
+    <h2>치즈 도감</h2>
+    <div class="px toolbar">
+      <div class="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="q" type="search" placeholder="이름, 나라, 맛으로 검색 (예: 프랑스, 견과향)" aria-label="치즈 검색">
+        <span class="count" id="count"></span>
+      </div>
+      <div class="frow" data-key="milk"><span class="lbl">원유</span></div>
+      <div class="frow" data-key="texture"><span class="lbl">질감</span></div>
+      <div class="frow" data-key="country"><span class="lbl">나라</span></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="tips">
+    <h2>보관 · 서빙 팁</h2>
+    <ul class="px tips" id="tiplist"></ul>
+  </section>
+
+  <footer>■ 픽셀 치즈 백과 · 모든 아이콘은 16×16 픽셀로 그렸습니다 ■</footer>
+</div>
+
+<dialog id="modal"><div class="px mbox" id="mbox"></div></dialog>
+
+<script>
+window.CHEESE_A = [
+  {
+    "id": "brie",
+    "name": "브리",
+    "en": "Brie",
+    "country": "프랑스",
+    "region": "일드프랑스",
+    "milk": "소",
+    "texture": "연성",
+    "shape": "wheel",
+    "rind": "#ece6d6",
+    "paste": "#f1e4b9",
+    "aging": "4~8주",
+    "fat": "45~50%",
+    "taste": ["버터향", "버섯향", "크리미"],
+    "intensity": 2,
+    "desc": "하얀 솜털 같은 곰팡이 껍질에 싸인 대표적인 흰곰팡이 연성 치즈입니다. 숙성될수록 속살이 부드럽게 흘러내리며 버터와 버섯, 견과류 향이 깊어집니다. 브리 드 모와 브리 드 믈룅은 원산지 명칭 보호(AOP)를 받습니다.",
+    "history": "파리 동쪽 브리 지방에서 중세부터 만들어졌으며, 샤를마뉴 대제가 즐겼다는 이야기가 전해집니다.",
+    "pairings": ["바게트", "샴페인", "무화과", "청포도"],
+    "uses": "실온에 30분쯤 두었다가 껍질째 먹거나, 통째로 오븐에 구워 꿀을 곁들여 먹습니다.",
+    "trivia": "1815년 빈 회의 때 열린 치즈 경연에서 '치즈의 왕'이라는 칭호를 얻었다고 전해집니다."
+  },
+  {
+    "id": "camembert",
+    "name": "카망베르",
+    "en": "Camembert",
+    "country": "프랑스",
+    "region": "노르망디",
+    "milk": "소",
+    "texture": "연성",
+    "shape": "wheel",
+    "rind": "#e9e2cf",
+    "paste": "#f0e0ae",
+    "aging": "3~6주",
+    "fat": "45%",
+    "taste": ["버섯향", "흙내음", "우유향"],
+    "intensity": 3,
+    "desc": "브리보다 작고 두툼한 흰곰팡이 연성 치즈로, 향이 더 진하고 흙내음이 납니다. 숙성이 진행되면 가장자리부터 크림처럼 녹아내립니다. 비살균유로 만든 '카망베르 드 노르망디'는 AOP 인증을 받습니다.",
+    "history": "1791년 무렵 노르망디 카망베르 마을의 농부 마리 아렐이 처음 만들었다고 전해집니다.",
+    "pairings": ["사과주(시드르)", "칼바도스", "사과", "호밀빵"],
+    "uses": "그대로 먹거나 나무 상자째 오븐에 구워 빵을 찍어 먹습니다.",
+    "trivia": "1890년경 개발된 둥근 포플러 나무 상자 덕분에 먼 곳까지 운송할 수 있게 되어 전 세계로 퍼졌습니다."
+  },
+  {
+    "id": "mozzarella",
+    "name": "모차렐라",
+    "en": "Mozzarella",
+    "country": "이탈리아",
+    "region": "캄파니아",
+    "milk": "물소",
+    "texture": "생치즈",
+    "shape": "ball",
+    "rind": "#f6f3ea",
+    "paste": "#f8f5ec",
+    "aging": "숙성 없음",
+    "fat": "40~50%",
+    "taste": ["우유향", "산뜻함", "쫄깃함"],
+    "intensity": 1,
+    "desc": "커드를 뜨거운 물에 늘리고 반죽하는 '파스타 필라타' 방식으로 만드는 신선 치즈입니다. 촉촉하고 탄력 있는 식감에 은은한 우유 향과 산미가 특징입니다. 물소젖으로 만든 '모차렐라 디 부팔라 캄파나'는 AOP 인증을 받으며, 소젖 제품은 '피오르 디 라테'라고 부릅니다.",
+    "history": "남부 이탈리아에서 중세부터 만들어졌으며, 이름은 커드를 손으로 '잘라낸다'는 뜻의 '모차레(mozzare)'에서 왔습니다.",
+    "pairings": ["토마토", "바질", "올리브유", "프로세코"],
+    "uses": "카프레제 샐러드로 신선하게 먹거나 피자 마르게리타에 올려 녹여 먹습니다.",
+    "trivia": "피자용으로 쓰이는 수분이 적은 모차렐라는 오래 보관할 수 있도록 별도로 개발된 제품입니다."
+  },
+  {
+    "id": "burrata",
+    "name": "부라타",
+    "en": "Burrata",
+    "country": "이탈리아",
+    "region": "풀리아",
+    "milk": "소",
+    "texture": "생치즈",
+    "shape": "ball",
+    "rind": "#f5f1e6",
+    "paste": "#f7f2e2",
+    "aging": "숙성 없음",
+    "fat": "약 60%",
+    "taste": ["크리미", "우유향", "달콤함"],
+    "intensity": 1,
+    "desc": "모차렐라로 만든 주머니 안에 잘게 찢은 커드와 크림을 섞은 '스트라차텔라'를 채운 신선 치즈입니다. 칼을 대면 속에서 진한 크림이 흘러나옵니다. 매우 신선할 때 먹어야 하므로 만든 지 며칠 안에 소비합니다.",
+    "history": "1920년대 풀리아 안드리아 지역에서 모차렐라를 만들고 남은 자투리를 활용하려고 처음 만들었다고 전해집니다.",
+    "pairings": ["방울토마토", "복숭아", "올리브유", "사워도우"],
+    "uses": "샐러드나 파스타 위에 통째로 올려 갈라 먹으며, 가열하지 않고 차갑게 즐깁니다.",
+    "trivia": "이름은 이탈리아어로 '버터를 바른'이라는 뜻으로, 버터처럼 부드러운 속을 가리킵니다."
+  },
+  {
+    "id": "ricotta",
+    "name": "리코타",
+    "en": "Ricotta",
+    "country": "이탈리아",
+    "region": "라치오",
+    "milk": "양",
+    "texture": "생치즈",
+    "shape": "tub",
+    "rind": "#f7f4ec",
+    "paste": "#f8f6ef",
+    "aging": "숙성 없음",
+    "fat": "10~20%",
+    "taste": ["담백함", "달콤함", "우유향"],
+    "intensity": 1,
+    "desc": "치즈를 만들고 남은 유청을 다시 가열해 응고시킨 부드럽고 촉촉한 치즈입니다. 알갱이가 고운 크림 같은 식감에 은은한 단맛이 납니다. 소젖 제품이 흔하지만 로마 지역의 양젖 리코타(리코타 로마나)는 AOP 인증을 받습니다.",
+    "history": "고대 로마 시대부터 만들어진 것으로 알려지며, 버려지던 유청을 활용하는 지혜에서 탄생했습니다.",
+    "pairings": ["꿀", "레몬 제스트", "시금치", "베리류"],
+    "uses": "라자냐와 라비올리 속, 카놀리 같은 디저트, 팬케이크 반죽 등에 두루 쓰입니다.",
+    "trivia": "이름은 '다시 끓였다'는 뜻으로, 유청을 두 번 가열하는 제조법에서 유래했습니다."
+  },
+  {
+    "id": "feta",
+    "name": "페타",
+    "en": "Feta",
+    "country": "그리스",
+    "region": "마케도니아·테살리아 등",
+    "milk": "양",
+    "texture": "생치즈",
+    "shape": "block",
+    "rind": "#f4f2ea",
+    "paste": "#f6f4ed",
+    "aging": "최소 2개월",
+    "fat": "약 43%",
+    "taste": ["짭짤함", "새콤함", "고소함"],
+    "intensity": 3,
+    "desc": "소금물에 담가 숙성시키는 하얀 블록 모양의 치즈로, 짭짤하고 새콤한 맛이 납니다. 부서지기 쉬운 식감이지만 크림 같은 부드러움도 있습니다. EU 원산지 명칭 보호에 따라 그리스산 양젖 또는 양젖에 염소젖을 최대 30%까지 섞은 것만 페타라 부를 수 있습니다.",
+    "history": "고대 그리스 시대부터 비슷한 치즈가 만들어졌으며, '페타'라는 이름은 이탈리아어 '조각(fetta)'에서 17세기 무렵 유래했습니다.",
+    "pairings": ["올리브", "오이", "수박", "레드와인"],
+    "uses": "그릭 샐러드에 부숴 넣거나 시금치 파이 스파나코피타에 넣고, 통째로 구워 먹기도 합니다.",
+    "trivia": "2002년 EU에서 원산지 명칭 보호를 받으면서 덴마크 등 다른 나라는 '페타'라는 이름을 쓸 수 없게 되었습니다."
+  },
+  {
+    "id": "halloumi",
+    "name": "할루미",
+    "en": "Halloumi",
+    "country": "키프로스",
+    "region": "키프로스 전역",
+    "milk": "혼합",
+    "texture": "반경성",
+    "shape": "block",
+    "rind": "#efe9d8",
+    "paste": "#f4efdf",
+    "aging": "숙성 없음~수개월",
+    "fat": "약 25%",
+    "taste": ["짭짤함", "쫄깃함", "민트향"],
+    "intensity": 2,
+    "desc": "양젖과 염소젖을 주로 쓰고 소젖을 섞기도 하는 키프로스의 전통 치즈입니다. 커드를 뜨거운 유청에 한 번 데쳐 만들기 때문에 녹는점이 높아 구워도 형태가 유지됩니다. 반으로 접은 모양에 말린 민트 잎을 곁들이는 것이 전통입니다.",
+    "history": "비잔틴 시대부터 키프로스에서 만들어졌다고 하며, 2021년 EU 원산지 명칭 보호를 받았습니다.",
+    "pairings": ["수박", "레몬", "피타빵", "토마토"],
+    "uses": "두툼하게 썰어 그릴이나 팬에 노릇하게 구워 먹는 것이 가장 대표적입니다.",
+    "trivia": "구울 때 이에 닿아 '뽀득뽀득' 소리가 나서 영어권에서는 '스퀵 치즈'라고도 불립니다."
+  },
+  {
+    "id": "cream-cheese",
+    "name": "크림치즈",
+    "en": "Cream cheese",
+    "country": "미국",
+    "region": "뉴욕",
+    "milk": "소",
+    "texture": "생치즈",
+    "shape": "tub",
+    "rind": "#f7f5ef",
+    "paste": "#f9f7f1",
+    "aging": "숙성 없음",
+    "fat": "33% 이상",
+    "taste": ["새콤함", "크리미", "부드러움"],
+    "intensity": 1,
+    "desc": "우유와 크림을 섞어 젖산균으로 응고시킨 부드럽고 매끄러운 치즈입니다. 가볍게 새콤한 맛과 잘 펴 발리는 질감이 특징입니다. 미국 기준으로 지방 33% 이상, 수분 55% 이하여야 합니다.",
+    "history": "1872년 뉴욕 체스터의 낙농업자 윌리엄 로런스가 대량 생산을 시작했고, 1880년 '필라델피아' 상표가 붙었습니다.",
+    "pairings": ["베이글", "훈제연어", "케이퍼", "딸기잼"],
+    "uses": "베이글에 발라 먹거나 치즈케이크, 프로스팅, 딥소스의 재료로 씁니다.",
+    "trivia": "'필라델피아'라는 상표명은 당시 고급 식품의 대명사였던 필라델피아의 이미지를 빌린 것으로, 실제 생산지는 뉴욕이었습니다."
+  },
+  {
+    "id": "mascarpone",
+    "name": "마스카르포네",
+    "en": "Mascarpone",
+    "country": "이탈리아",
+    "region": "롬바르디아",
+    "milk": "소",
+    "texture": "생치즈",
+    "shape": "tub",
+    "rind": "#f7f2e3",
+    "paste": "#f8f1dc",
+    "aging": "숙성 없음",
+    "fat": "약 70~75%",
+    "taste": ["버터향", "달콤함", "크리미"],
+    "intensity": 1,
+    "desc": "생크림에 구연산이나 주석산 같은 산을 넣어 응고시킨 진하고 부드러운 크림 치즈입니다. 버터처럼 풍부하면서도 단맛이 은은하고 산미가 거의 없습니다. 엄밀히는 응유효소를 쓰지 않아 '치즈와 비슷한 유제품'으로 분류되기도 합니다.",
+    "history": "16~17세기 무렵 밀라노 남쪽 로디 지역에서 처음 만들어졌다고 알려져 있습니다.",
+    "pairings": ["에스프레소", "코코아", "딸기", "레이디핑거"],
+    "uses": "티라미수의 핵심 재료이며, 리소토나 파스타 소스에 넣어 크림 같은 농도를 더합니다.",
+    "trivia": "티라미수는 1960~70년대 베네토 지역에서 탄생한 비교적 새로운 디저트입니다."
+  },
+  {
+    "id": "chevre",
+    "name": "셰브르",
+    "en": "Chèvre",
+    "country": "프랑스",
+    "region": "루아르 계곡",
+    "milk": "염소",
+    "texture": "생치즈",
+    "shape": "log",
+    "rind": "#eeece4",
+    "paste": "#f6f5ef",
+    "aging": "숙성 없음~수주",
+    "fat": "약 45%",
+    "taste": ["새콤함", "허브향", "산뜻함"],
+    "intensity": 2,
+    "desc": "프랑스어로 '염소'를 뜻하며, 염소젖으로 만든 치즈를 통틀어 부르는 말입니다. 갓 만든 것은 촉촉하고 새콤하며, 숙성될수록 단단해지고 향이 진해집니다. 생트모르 드 투렌처럼 나뭇재를 입힌 통나무 모양 제품이 유명합니다.",
+    "history": "8세기 무렵 푸아티에 전투 이후 프랑스 중부에 남은 사라센인들이 염소 사육과 치즈 제조를 전했다는 이야기가 있습니다.",
+    "pairings": ["상세르", "소비뇽 블랑", "비트", "꿀"],
+    "uses": "샐러드에 얹거나 빵 위에 올려 따뜻하게 구운 '샐러드 드 셰브르 쇼'로 즐깁니다.",
+    "trivia": "생트모르 드 투렌 가운데에는 형태를 잡아주는 호밀짚 한 가닥이 꽂혀 있습니다."
+  },
+  {
+    "id": "taleggio",
+    "name": "탈레지오",
+    "en": "Taleggio",
+    "country": "이탈리아",
+    "region": "롬바르디아",
+    "milk": "소",
+    "texture": "연성",
+    "shape": "block",
+    "rind": "#d9b98f",
+    "paste": "#f2e6c6",
+    "aging": "5~10주",
+    "fat": "약 48%",
+    "taste": ["짭짤함", "과일향", "고소함"],
+    "intensity": 3,
+    "desc": "주기적으로 소금물로 껍질을 닦아 숙성하는 정사각형 모양의 워시드 린드 치즈입니다. 주황빛 껍질에서는 강한 냄새가 나지만 속은 부드럽고 은은한 과일 향과 고소함이 납니다. 껍질에는 원산지를 나타내는 네 잎 모양 도장이 찍혀 있습니다.",
+    "history": "베르가모 근처 발 탈레지오 계곡에서 10세기 무렵부터 동굴 숙성으로 만들어졌다고 전해집니다.",
+    "pairings": ["배", "호두", "바르베라", "폴렌타"],
+    "uses": "그대로 먹거나 리소토, 폴렌타, 피자에 넣어 녹여 먹습니다.",
+    "trivia": "냄새는 강하지만 맛은 의외로 순해 '냄새는 크고 맛은 온순한 치즈'로 불립니다."
+  },
+  {
+    "id": "livarot",
+    "name": "리바로",
+    "en": "Livarot",
+    "country": "프랑스",
+    "region": "노르망디",
+    "milk": "소",
+    "texture": "연성",
+    "shape": "wheel",
+    "rind": "#d6a874",
+    "paste": "#efdcae",
+    "aging": "최소 3주",
+    "fat": "약 40~45%",
+    "taste": ["진한 향", "짭짤함", "고기향"],
+    "intensity": 5,
+    "desc": "노르망디를 대표하는 워시드 린드 치즈로, 주황빛 끈적한 껍질에서 매우 강한 냄새가 납니다. 속은 부드럽고 탄력 있으며 짭짤하고 깊은 감칠맛이 납니다. 1975년 AOC 인증을 받았습니다.",
+    "history": "13세기부터 노르망디 페이도주 지방의 리바로 마을 일대에서 만들어진 것으로 기록되어 있습니다.",
+    "pairings": ["시드르", "칼바도스", "감자", "시골빵"],
+    "uses": "그대로 먹거나 감자 요리와 타르트에 넣어 구워 먹습니다.",
+    "trivia": "옆면을 갈대 띠 다섯 줄로 감싼 모습이 대령 계급장을 닮아 '콜로넬(대령)'이라는 별명이 붙었습니다."
+  }
+];
+
+window.CHEESE_A = window.CHEESE_A.concat([
+{"id":"reblochon","name":"르블로숑","en":"Reblochon","country":"프랑스","region":"오트사부아","milk":"소","texture":"연성","shape":"wheel","rind":"#e2c9a0","paste":"#f3e4b8","aging":"3~8주","fat":"45%","taste":["견과향","크리미","은은한 흙내음"],"intensity":3,
+"desc":"알프스 사부아 지방의 납작한 원반형 치즈로, 벨벳 같은 껍질 안에 부드럽고 녹진한 속살이 있습니다. 향은 부드럽지만 견과류와 우유의 풍미가 깊습니다.","history":"13세기 농부들이 지주에게 내는 우유량을 줄이려 일부러 덜 짠 뒤, 몰래 다시 짠 진한 우유로 만들었다는 데서 이름이 유래했습니다. 1958년 AOC로 지정되었습니다.",
+"pairings":["감자","베이컨","사부아 화이트 와인","양파"],"uses":"감자·베이컨·양파와 함께 구워 내는 알프스 요리 '타르티플레트'의 핵심 재료입니다.","trivia":"'르블로셰(reblocher)'는 사부아 방언으로 '소젖을 다시 짜다'라는 뜻입니다."},
+{"id":"munster","name":"뮌스터","en":"Munster","country":"프랑스","region":"알자스·로렌","milk":"소","texture":"연성","shape":"wheel","rind":"#d9a874","paste":"#f2e2b5","aging":"3주~3개월","fat":"45%","taste":["강한 향","짭짤함","부드러운 단맛"],"intensity":4,
+"desc":"소금물로 껍질을 닦아 숙성하는 워시드 린드 치즈로, 주황빛 껍질과 강렬한 향이 특징입니다. 냄새에 비해 속맛은 의외로 부드럽고 고소합니다.","history":"7세기경 보주 산맥 뮌스터 계곡의 수도사들이 우유를 보존하기 위해 만들기 시작했습니다. 1969년 AOC로 지정되었습니다.",
+"pairings":["커민","삶은 감자","게뷔르츠트라미너","호밀빵"],"uses":"알자스에서는 커민 씨를 곁들이거나 삶은 감자와 함께 먹습니다.","trivia":"뮌스터(Munster)라는 지명은 라틴어로 '수도원'을 뜻하는 monasterium에서 왔습니다."},
+{"id":"saint-nectaire","name":"생넥테르","en":"Saint-Nectaire","country":"프랑스","region":"오베르뉴","milk":"소","texture":"반경성","shape":"wheel","rind":"#c9b7a0","paste":"#f0e0b0","aging":"4~8주","fat":"45%","taste":["버섯향","흙내음","고소함"],"intensity":3,
+"desc":"화산 지대 오베르뉴의 목초를 먹은 소의 우유로 만든 반경성 치즈입니다. 회색빛 자연 껍질 아래 촉촉하고 쫀득한 속살에서 버섯과 건초 향이 납니다.","history":"17세기 생넥테르 원수(Maréchal de Senneterre)가 루이 14세의 식탁에 올리며 이름을 알렸습니다. 1955년 AOC로 지정되었습니다.",
+"pairings":["호두","레드 와인","시골빵","사과"],"uses":"그대로 썰어 치즈 플레이트에 올리거나, 감자 요리·그라탱에 녹여 씁니다.","trivia":"전통적으로 호밀짚 위에서 숙성시켜 껍질에 흰색·회색·노란 곰팡이가 함께 자랍니다."},
+{"id":"epoisses","name":"에푸아스","en":"Époisses","country":"프랑스","region":"부르고뉴","milk":"소","texture":"연성","shape":"wheel","rind":"#d39a6a","paste":"#f3e3bd","aging":"4~8주","fat":"50%","taste":["진한 향","짭짤함","크리미"],"intensity":5,
+"desc":"부르고뉴의 브랜디 '마르 드 부르고뉴'로 껍질을 닦아 숙성하는 강렬한 치즈입니다. 숟가락으로 떠먹을 만큼 흐르는 속살과 짙은 주황 껍질이 특징입니다.","history":"16세기 시토회 수도사들이 처음 만들었으며, 제2차 세계대전 후 거의 사라졌다가 1956년 한 농가가 되살렸습니다. 1991년 AOC로 지정되었습니다.",
+"pairings":["바게트","부르고뉴 레드 와인","마르 드 부르고뉴","배"],"uses":"상온에 두어 흐물해지면 빵에 떠서 발라 먹습니다.","trivia":"미식가 브리야사바랭은 에푸아스를 '치즈의 왕'이라 불렀습니다."}
+]);
+
+window.CHEESE_B = [
+  {
+    "id": "cheddar",
+    "name": "체다",
+    "en": "Cheddar",
+    "country": "영국",
+    "region": "서머싯",
+    "milk": "소",
+    "texture": "경성",
+    "shape": "block",
+    "rind": "#d9c7a0",
+    "paste": "#f0d58a",
+    "aging": "3~24개월",
+    "fat": "48%",
+    "taste": ["견과향", "날카로움", "짭짤함"],
+    "intensity": 3,
+    "desc": "세계에서 가장 널리 생산되고 소비되는 치즈 중 하나입니다. 숙성 기간이 길어질수록 맛이 날카롭고 깊어지며, 숙성된 체다에서는 바삭한 결정이 느껴지기도 합니다. 주황색 체다는 안나토 색소로 물들인 것입니다.",
+    "history": "12세기 무렵 서머싯의 체다 마을 근처에서 만들어지기 시작했으며, 체다 협곡의 동굴은 숙성 장소로 쓰였습니다.",
+    "pairings": ["사과", "에일 맥주", "처트니", "크래커"],
+    "uses": "샌드위치, 맥앤치즈, 버거, 플라우맨스 런치 등 생으로도 요리용으로도 두루 쓰입니다.",
+    "trivia": "커드를 쌓고 뒤집으며 유청을 빼는 독특한 공정을 '체더링'이라고 부릅니다."
+  },
+  {
+    "id": "gouda",
+    "name": "고다",
+    "en": "Gouda",
+    "country": "네덜란드",
+    "region": "남홀란트 (하우다)",
+    "milk": "소",
+    "texture": "반경성",
+    "shape": "wheel",
+    "rind": "#d8b56a",
+    "paste": "#f1dc9c",
+    "aging": "1~36개월",
+    "fat": "48%",
+    "taste": ["버터향", "캐러멜", "고소함"],
+    "intensity": 2,
+    "desc": "부드럽고 버터 같은 풍미를 지닌 네덜란드의 대표 치즈입니다. 어린 고다는 순하고 탄력 있으며, 오래 숙성한 고다는 캐러멜 같은 단맛과 아미노산 결정이 생깁니다. 겉면은 주로 왁스로 코팅합니다.",
+    "history": "하우다(Gouda) 시에서 치즈가 거래되던 데서 이름이 유래했으며, 12세기 문헌에도 등장할 만큼 역사가 깁니다.",
+    "pairings": ["흑맥주", "사과", "호두", "포트 와인"],
+    "uses": "얇게 썰어 빵에 올려 먹거나 녹여서 토스트, 수프에 활용합니다.",
+    "trivia": "고다는 생산지가 아닌 거래 시장의 이름을 딴 치즈로, 지금도 하우다에서는 전통 치즈 시장이 열립니다."
+  },
+  {
+    "id": "emmental",
+    "name": "에멘탈",
+    "en": "Emmental",
+    "country": "스위스",
+    "region": "베른 (에멘탈 계곡)",
+    "milk": "소",
+    "texture": "경성",
+    "shape": "wheel",
+    "rind": "#d6c08a",
+    "paste": "#f2e3b0",
+    "aging": "4~14개월",
+    "fat": "45%",
+    "taste": ["순함", "견과향", "은은한 단맛"],
+    "intensity": 2,
+    "desc": "체리만 한 큰 구멍이 특징인 스위스 치즈의 상징입니다. 맛은 순하고 약간 달콤하며 견과류 향이 납니다. 바퀴 하나의 무게가 최대 100kg에 이를 정도로 거대합니다.",
+    "history": "13세기 무렵 베른주 에멘탈 계곡에서 처음 기록되었으며, 퐁뒤의 핵심 재료로 자리 잡았습니다.",
+    "pairings": ["햄", "화이트 와인", "호밀빵", "포도"],
+    "uses": "퐁뒤, 크로크무슈, 그라탱 등 녹여 먹는 요리에 많이 쓰입니다.",
+    "trivia": "구멍은 프로피오니박테리아가 내뿜는 이산화탄소로 생기며, 최근에는 건초 미세입자도 원인으로 밝혀졌습니다."
+  },
+  {
+    "id": "gruyere",
+    "name": "그뤼에르",
+    "en": "Gruyère",
+    "country": "스위스",
+    "region": "프리부르",
+    "milk": "소",
+    "texture": "경성",
+    "shape": "wheel",
+    "rind": "#a88a5c",
+    "paste": "#ead59a",
+    "aging": "5~18개월",
+    "fat": "49%",
+    "taste": ["견과향", "흙내음", "짭짤함"],
+    "intensity": 3,
+    "desc": "단단하고 촘촘한 조직에 구멍이 거의 없는 스위스 치즈입니다. 고소한 견과향과 짭짤한 감칠맛이 숙성될수록 진해집니다. 녹였을 때 맛과 질감이 뛰어나 요리용으로 높이 평가됩니다.",
+    "history": "1115년경부터 프리부르주 그뤼에르 마을 일대에서 만들어진 것으로 알려지며, 2001년 스위스 AOC를 받았습니다.",
+    "pairings": ["드라이 화이트 와인", "배", "바게트", "호두"],
+    "uses": "퐁뒤, 프렌치 어니언 수프, 키슈, 크로크무슈에 빠지지 않습니다.",
+    "trivia": "프랑스에서도 '그뤼에르'라는 이름의 치즈가 만들어지는데, 프랑스산은 구멍이 있어야 한다는 규정이 있습니다."
+  },
+  {
+    "id": "parmigiano-reggiano",
+    "name": "파르미지아노 레지아노",
+    "en": "Parmigiano Reggiano",
+    "country": "이탈리아",
+    "region": "에밀리아로마냐",
+    "milk": "소",
+    "texture": "경성",
+    "shape": "wheel",
+    "rind": "#c9a76a",
+    "paste": "#eedba0",
+    "aging": "12~36개월 이상",
+    "fat": "32%",
+    "taste": ["감칠맛", "견과향", "짭짤함"],
+    "intensity": 4,
+    "desc": "'치즈의 왕'이라 불리는 이탈리아의 대표 경성 치즈입니다. 최소 12개월 이상 숙성하며, 부서지는 결 사이로 아미노산 결정이 씹힙니다. 깊은 감칠맛과 고소함이 특징입니다.",
+    "history": "중세 베네딕토회와 시토회 수도사들이 파르마와 레조에밀리아 지역에서 만들기 시작한 것으로 전해집니다.",
+    "pairings": ["발사믹 식초", "배", "람브루스코", "무화과"],
+    "uses": "파스타와 리소토에 갈아 넣거나 덩어리로 부숴 와인과 함께 즐깁니다.",
+    "trivia": "이탈리아 은행 일부는 파르미지아노 레지아노 바퀴를 담보로 대출을 해주기도 합니다."
+  },
+  {
+    "id": "pecorino-romano",
+    "name": "페코리노 로마노",
+    "en": "Pecorino Romano",
+    "country": "이탈리아",
+    "region": "라치오·사르데냐·토스카나",
+    "milk": "양",
+    "texture": "경성",
+    "shape": "wheel",
+    "rind": "#d4c4a0",
+    "paste": "#f3ead2",
+    "aging": "5~12개월",
+    "fat": "36%",
+    "taste": ["강한 짠맛", "톡 쏘는 맛", "양젖 풍미"],
+    "intensity": 4,
+    "desc": "양젖으로 만든 단단하고 짠맛이 강한 이탈리아 치즈입니다. 날카롭고 톡 쏘는 풍미가 있어 소량으로도 요리의 맛을 살립니다. 현재 생산량의 대부분은 사르데냐에서 나옵니다.",
+    "history": "고대 로마 시대부터 만들어졌으며, 로마 군단 병사들의 배급 식량으로 쓰였다고 전해집니다.",
+    "pairings": ["잠두콩", "꿀", "키안티", "배"],
+    "uses": "카초 에 페페, 카르보나라, 아마트리치아나 등 로마 파스타에 갈아서 넣습니다.",
+    "trivia": "'페코리노'는 이탈리아어로 양을 뜻하는 '페코라'에서 온 이름입니다."
+  },
+  {
+    "id": "manchego",
+    "name": "만체고",
+    "en": "Manchego",
+    "country": "스페인",
+    "region": "라만차",
+    "milk": "양",
+    "texture": "반경성",
+    "shape": "wheel",
+    "rind": "#b89a6a",
+    "paste": "#f0e2b8",
+    "aging": "30일~2년",
+    "fat": "50%",
+    "taste": ["고소함", "약간의 산미", "양젖 풍미"],
+    "intensity": 3,
+    "desc": "라만차 지역의 만체가 양 젖으로 만드는 스페인 대표 치즈입니다. 겉면의 지그재그 무늬는 전통적으로 에스파르토 풀로 엮은 틀에서 생긴 것입니다. 숙성될수록 단단해지고 고소한 맛이 깊어집니다.",
+    "history": "라만차 고원에서 수천 년 전부터 만들어진 것으로 여겨지며, 『돈키호테』에도 언급됩니다.",
+    "pairings": ["멤브리요(마르멜로 젤리)", "하몬", "템프라니요", "아몬드"],
+    "uses": "얇은 삼각형으로 썰어 타파스로 내거나 올리브유에 절여 먹습니다.",
+    "trivia": "윗면과 아랫면의 꽃무늬는 나무 압착판에서 찍힌 것이며, 옆면의 지그재그 무늬는 에스파르토 띠인 '플레이타'에서 생깁니다."
+  },
+  {
+    "id": "comte",
+    "name": "콩테",
+    "en": "Comté",
+    "country": "프랑스",
+    "region": "프랑슈콩테 (쥐라)",
+    "milk": "소",
+    "texture": "경성",
+    "shape": "wheel",
+    "rind": "#b8996a",
+    "paste": "#edd598",
+    "aging": "4~36개월",
+    "fat": "45%",
+    "taste": ["견과향", "버터향", "과일향"],
+    "intensity": 3,
+    "desc": "프랑스에서 가장 많이 생산되는 AOP 치즈입니다. 계절과 목초지, 숙성 기간에 따라 맛이 크게 달라져 같은 콩테라도 개성이 다양합니다. 견과류, 버터, 구운 향이 복합적으로 어우러집니다.",
+    "history": "중세 쥐라 산맥의 농민들이 긴 겨울을 나기 위해 우유를 모아 큰 치즈를 만든 '프뤼티에르' 협동조합에서 시작되었습니다.",
+    "pairings": ["뱅 존", "호두", "사과", "바게트"],
+    "uses": "그대로 썰어 먹거나 그라탱, 수플레, 퐁뒤에 사용합니다.",
+    "trivia": "몽벨리아르드 또는 프랑스 시멘탈 품종의 우유만 쓸 수 있으며, 젖소 한 마리당 1헥타르 이상의 목초지가 필요합니다."
+  },
+  {
+    "id": "mimolette",
+    "name": "미몰레트",
+    "en": "Mimolette",
+    "country": "프랑스",
+    "region": "노르파드칼레 (릴)",
+    "milk": "소",
+    "texture": "경성",
+    "shape": "ball",
+    "rind": "#a6866a",
+    "paste": "#d99a5e",
+    "aging": "3~24개월",
+    "fat": "45%",
+    "taste": ["견과향", "캐러멜", "과일향"],
+    "intensity": 3,
+    "desc": "안나토로 물들인 주황빛 속살과 멜론처럼 둥근 모양이 특징인 프랑스 치즈입니다. 오래 숙성하면 매우 단단해지고 캐러멜과 헤이즐넛 같은 풍미가 납니다. 겉면은 울퉁불퉁한 회갈색 껍질로 덮여 있습니다.",
+    "history": "17세기 루이 14세 시절 네덜란드산 에담 수입이 금지되자 프랑스 북부에서 대체품으로 만들기 시작했다고 전해집니다.",
+    "pairings": ["벨기에 맥주", "포트 와인", "말린 과일"],
+    "uses": "얇게 깎아 아페리티프로 먹거나 샐러드, 오믈렛에 갈아 넣습니다.",
+    "trivia": "껍질에 사는 치즈 진드기가 표면을 갉아 숨구멍을 만들어 독특한 풍미를 더합니다."
+  },
+  {
+    "id": "roquefort",
+    "name": "로크포르",
+    "en": "Roquefort",
+    "country": "프랑스",
+    "region": "아베롱 (로크포르쉬르술종)",
+    "milk": "양",
+    "texture": "블루",
+    "shape": "wheel",
+    "rind": "#e8e2d0",
+    "paste": "#eee8d6",
+    "aging": "3~9개월",
+    "fat": "52%",
+    "taste": ["톡 쏘는 맛", "짭짤함", "크리미함"],
+    "intensity": 5,
+    "desc": "라콘 품종 양젖으로 만드는 프랑스의 대표 블루치즈입니다. 촉촉하고 부서지는 질감에 푸른곰팡이 줄무늬가 퍼져 있으며, 강렬하고 짭짤한 맛이 납니다. 반드시 콩발루 산의 천연 동굴에서 숙성해야 합니다.",
+    "history": "1925년 프랑스 최초의 AOC 치즈로 지정되었으며, 1411년 샤를 6세가 마을에 독점 숙성권을 부여했다는 기록이 있습니다.",
+    "pairings": ["소테른", "호두", "꿀", "배"],
+    "uses": "샐러드 드레싱, 스테이크 소스로 쓰거나 디저트 와인과 함께 그대로 먹습니다.",
+    "trivia": "곰팡이 페니실리움 로크포르티는 전통적으로 동굴에서 곰팡이 피운 호밀빵으로 배양했습니다."
+  },
+  {
+    "id": "gorgonzola",
+    "name": "고르곤졸라",
+    "en": "Gorgonzola",
+    "country": "이탈리아",
+    "region": "롬바르디아·피에몬테",
+    "milk": "소",
+    "texture": "블루",
+    "shape": "wheel",
+    "rind": "#d8c8a4",
+    "paste": "#efe6c8",
+    "aging": "2~12개월",
+    "fat": "48%",
+    "taste": ["크리미함", "톡 쏘는 맛", "은은한 단맛"],
+    "intensity": 4,
+    "desc": "이탈리아 북부를 대표하는 블루치즈입니다. 부드럽고 단맛이 도는 '돌체'와 단단하고 강렬한 '피칸테' 두 종류가 있습니다. 녹색빛이 도는 푸른곰팡이 무늬가 특징입니다.",
+    "history": "9세기경 밀라노 근교의 고르곤졸라 마을에서 처음 만들어졌다고 전해집니다.",
+    "pairings": ["꿀", "배", "호두", "모스카토 다스티"],
+    "uses": "뇨키와 파스타 크림소스, 피자, 리소토에 넣거나 꿀을 곁들여 먹습니다.",
+    "trivia": "전설에 따르면 사랑에 빠진 치즈 장인이 전날 커드를 깜빡 섞어둔 실수로 탄생했다고 합니다."
+  },
+  {
+    "id": "stilton",
+    "name": "스틸턴",
+    "en": "Stilton",
+    "country": "영국",
+    "region": "더비셔·레스터셔·노팅엄셔",
+    "milk": "소",
+    "texture": "블루",
+    "shape": "wheel",
+    "rind": "#c4ad86",
+    "paste": "#efe4c6",
+    "aging": "9~12주 이상",
+    "fat": "48%",
+    "taste": ["진한 풍미", "크리미함", "흙내음"],
+    "intensity": 4,
+    "desc": "'영국 치즈의 왕'이라 불리는 블루치즈입니다. 속살 중심에서 바깥쪽으로 퍼지는 푸른 결이 대리석 무늬를 이루며, 크리미하면서 깊은 풍미가 납니다. 원산지 보호 규정에 따라 세 개 주에서만 생산할 수 있습니다.",
+    "history": "18세기 런던과 북부를 잇는 도로의 스틸턴 마을 여관에서 팔리며 유명해졌으나, 정작 스틸턴 마을은 생산 허가 지역에 포함되지 않습니다.",
+    "pairings": ["포트 와인", "배", "호두", "오트케이크"],
+    "uses": "크리스마스 치즈 보드에 오르며 수프, 샐러드, 소스에도 활용됩니다.",
+    "trivia": "규정상 저온살균한 우유만 써야 해서, 전통 방식 비살균 버전은 '스티클톤'이라는 다른 이름으로 팔립니다."
+  }
+];
+
+window.CHEESE_INTRO = {
+  "lead": "치즈는 우유 속 단백질(카세인)을 응고시킨 뒤 유청을 빼고 굳혀 만든 발효 유제품입니다. 우유의 종류와 만드는 방법, 숙성 기간에 따라 수천 가지의 맛과 질감이 생겨납니다.",
+  "timeline": [
+    { "year": "기원전 7000년경", "title": "고대 근동에서 시작", "text": "메소포타미아 일대에서 양과 염소를 가축화하면서 젖을 저장하는 방법으로 치즈가 탄생한 것으로 추정됩니다. 동물 위로 만든 주머니에 젖을 담았다가 우연히 응고된 것이 기원이라는 설이 있습니다." },
+    { "year": "기원전 13세기", "title": "이집트 무덤의 치즈", "text": "이집트 멤피스 관리 프타메스의 무덤에서 약 3,200년 전의 치즈 흔적이 발견되었습니다. 고대 이집트 벽화에도 치즈를 만드는 모습이 남아 있습니다." },
+    { "year": "1세기", "title": "로마의 치즈 기술", "text": "로마의 농학자 콜루멜라는 레닛으로 우유를 굳히고 소금을 쳐 숙성하는 방법을 자세히 기록했습니다. 로마 제국을 통해 퍼진 기술은 중세 유럽의 수도원에서 계승·발전되었습니다." },
+    { "year": "1411년", "title": "로크포르 칙허", "text": "프랑스 국왕 샤를 6세가 로크포르쉬르술종 주민에게 동굴에서 숙성한 치즈의 독점 생산권을 부여했습니다. 특정 지역 치즈를 보호한 초기 사례로 꼽힙니다." },
+    { "year": "1851년", "title": "최초의 치즈 공장", "text": "미국 뉴욕주 롬에서 제시 윌리엄스가 여러 농가의 우유를 모아 치즈를 만드는 최초의 공장을 세웠습니다. 이후 치즈의 대량 생산 시대가 열렸습니다." },
+    { "year": "1925년", "title": "원산지 보호 제도", "text": "로크포르가 프랑스 최초의 원산지 명칭(AOC) 보호를 받았습니다. 1992년에는 EU가 원산지 명칭 보호(PDO) 제도를 도입했습니다." },
+    { "year": "1967년", "title": "한국 임실치즈", "text": "벨기에 출신 지정환(디디에 세례스테벤스) 신부가 전북 임실에서 산양유로 치즈를 만들기 시작했습니다. 이는 한국 치즈 산업의 출발점이 되었습니다." }
+  ],
+  "steps": [
+    { "title": "우유 준비", "text": "신선한 우유를 살균하거나 원유 그대로 적정 온도로 데우고 젖산균(스타터)을 넣어 산도를 높입니다." },
+    { "title": "응고(레닛)", "text": "레닛 효소를 넣으면 카세인이 엉겨 두부처럼 말랑한 커드가 됩니다." },
+    { "title": "커드 자르기", "text": "커드를 잘게 자를수록 유청이 많이 빠져 더 단단한 치즈가 됩니다." },
+    { "title": "유청 분리", "text": "커드를 저으며 가열한 뒤 유청을 따라내고 커드만 모읍니다." },
+    { "title": "성형·가염", "text": "커드를 틀에 넣고 눌러 모양을 잡은 뒤 소금을 문지르거나 소금물에 담가 맛과 보존성을 더합니다." },
+    { "title": "숙성", "text": "온도와 습도를 조절한 저장고에서 몇 주에서 몇 년까지 숙성하며 고유의 풍미와 질감을 만듭니다." }
+  ],
+  "types": [
+    { "name": "생치즈", "text": "숙성하지 않아 수분이 많고 맛이 부드러우며 신선할 때 먹어야 합니다.", "examples": "모차렐라, 리코타, 코티지, 마스카르포네" },
+    { "name": "연성", "text": "짧게 숙성해 속이 크림처럼 부드럽고 겉에 흰 곰팡이나 세척 껍질이 있습니다.", "examples": "브리, 카망베르, 에푸아스" },
+    { "name": "반경성", "text": "수분이 적당해 탄력 있고 잘 녹아 요리와 간식에 두루 쓰입니다.", "examples": "고다, 하바티, 퐁텔, 몬터레이 잭" },
+    { "name": "경성", "text": "오래 숙성해 수분이 적고 단단하며 감칠맛이 진합니다.", "examples": "파르미지아노 레지아노, 체다, 그뤼에르, 콩테" },
+    { "name": "블루", "text": "푸른곰팡이(페니실리움)를 넣어 숙성시켜 푸른 줄무늬와 톡 쏘는 맛이 납니다.", "examples": "로크포르, 고르곤졸라, 스틸턴" }
+  ],
+  "tips": [
+    "치즈는 냉장고 채소칸처럼 온도 변화가 적은 곳에 두고, 랩보다 유산지나 치즈 전용 종이로 감싸야 숨을 쉴 수 있습니다.",
+    "먹기 30분~1시간 전에 냉장고에서 꺼내 실온에 두면 향과 맛이 살아납니다.",
+    "생치즈는 개봉 후 며칠 안에, 경성 치즈는 몇 주에 걸쳐 먹을 수 있습니다.",
+    "블루치즈는 향이 강하므로 다른 치즈와 따로 포장해 보관하세요.",
+    "치즈 플레이트는 순한 맛에서 진한 맛 순서로 먹고, 과일·견과류·꿀을 곁들이면 좋습니다."
+  ]
+};
+
+</script>
+
+<script>
+(function(){
+const A = (window.CHEESE_A||[]).concat(window.CHEESE_B||[]);
+const I = window.CHEESE_INTRO || {lead:"",timeline:[],steps:[],types:[],tips:[]};
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- pixel icon engine ---------- */
+/* ---------- pixel icon engine v2 ---------- */
+const E="................";
+const SH = {
+ wedge:[E,E,E,"...........oo...","........oossoo..",".....oosssssro..","..oossssssssro..",".orrrrrrrrrrro..",".opppppppppqdo..",".opppppppppqdo..",".opppppppppqdo..",".opppppppppqdo..",".opppppppppqdo..",".oqqqqqqqqqqdo..",".oooooooooooooo.".slice(0,15)+".",E],
+ wedgeholes:[E,E,E,"...........oo...","........oossoo..",".....oosssssro..","..oossssssssro..",".orrrrrrrrrrro..",".oppqqpppppqdo..",".opqqqppppqqdo..",".oppqppqqppqdo..",".opppppqqppqdo..",".oqqppppppqqdo..",".oqqqqqqqqqqdo..",".oooooooooooooo.".slice(0,15)+".",E],
+ wheel:[E,E,E,"....oooooooo....","..oossssssssoo..",".osssssssssssso.",".osssssssssssso.",".orssssssssssro.",".orrrssssssrrro.",".orrrrrrrrrrrro.",".orrrrrrrrrrrro.",".odrrrrrrrrrrdo.","..oodrrrrrrdoo..","....oooooooo....",E,E],
+ cutwheel:[E,E,E,"....oooooooo....","..oossssssssoo..",".ossssssssooooo.",".osssssssoqpppo.",".orsssssoqppppo.",".orrrrrroqpppp o".replace(" ","o").slice(0,15)+".",".orrrrrroqppppo.",".orrrrrroqppppo.",".odrrrrroqppppo.","..oodrrroqpppo..","....ooooooooo...",E,E],
+ flat:[E,E,E,E,E,"....oooooooo....","..oossssssssoo..",".osssssssssssso.",".osssssssssssso.",".orssssssssssro.",".orrrssssssrrro.",".odrrrrrrrrrrdo.","..oodrrrrrrdoo..","....oooooooo....",E,E],
+ banded:[E,E,E,"....oooooooo....","..oossssssssoo..",".osssssssssssso.",".osssssssssssso.",".orssssssssssro.",".oxxxssssssxxxo.",".orrrrrrrrrrrro.",".oxxxxxxxxxxxxo.",".orrrrrrrrrrrro.",".oxxxxxxxxxxxxo.","..oodrrrrrrdoo..","....oooooooo....",E],
+ zigzag:[E,E,E,"....oooooooo....","..oossssssssoo..",".osssssssssssso.",".osssssssssssso.",".orssssssssssro.",".orrrssssssrrro.",".orxrrrxrrrxrro.",".oxrxrxrxrxrxro.",".orrrxrrrxrrrxo.",".odrrrrrrrrrrdo.","..oodrrrrrrdoo..","....oooooooo....",E],
+ drum:[E,"....oooooooo....","..oossssssssoo..",".osssssssssssso.",".osssssssssssso.",".orssssssssssro.",".orrrssssssrrro.",".orrrrrrrrrrrro.",".orxrxrxrxrxrro.",".orrrrrrrrrrrro.",".orrrrrrrrrrrro.",".orrrrrrrrrrrro.",".odrrrrrrrrrrdo.","..oodrrrrrrdoo..","....oooooooo....",E],
+ box:[E,E,E,"....oooooooo....","..ooxxxxxxxxoo..",".oxxxwwwwwwxxxo.",".oxxwwzwzwzwxxo.",".oxxxwwwwwwxxxo.",".ooxxxxxxxxxxoo.",".oyyyyyyyyyyyyo.",".oyyyyyyyyyyyyo.",".oyyyyyyyyyyyyo.","..ooyyyyyyyyoo..","....oooooooo....",E,E],
+ openbox:[E,E,E,"....oooooooo....","..oossssssssoo..",".osswssssssssso.",".oswwssssssssso.",".osssssssssssso.",".ooxxxxxxxxxxoo.",".oyyyyyyyyyyyyo.",".oyyyyyyyyyyyyo.",".oyyyyyyyyyyyyo.","..ooyyyyyyyyoo..","....oooooooo....",E,E],
+ ball:[E,E,".....oooooo.....","...oossssssoo...","..oswwssssssso..","..oswsssssssso..",".osssssssssssso.",".osssssssssssso.",".osssssssssssdo.",".ossssssssssddo.","..osssssssssdo..","..oddsssssdddo..","...ooddddddoo...",".....oooooo.....",E,E],
+ cannon:[E,E,".....oooooo.....","...oossssssoo...","..oswssdsssdso..","..oswsssssssso..",".osssdsssdsssso.",".osssssssssdsso.",".osdssssssssdso.",".osssssdssssddo.","..ossdssssdsdo..","..oddssssddddo..","...ooddddddoo...",".....oooooo.....",E,E],
+ pouch:[E,"......o..o......",".....osooso.....","......osso......","....oossssoo....","...oswwssssso...","..oswsssssssso..",".osssssssssssso.",".osssssssssssso.",".osssssssssssdo.",".ossssssssssddo.","..osssssssssdo..","...oddssssddo...",".....oooooo.....",E,E],
+ log:[E,E,E,E,"...ooooooooooo..","..orrrrrrrrrooo.",".orrrrrrrrrropo.",".orrrrrrrrrropxo",".orrrrrrrrrropxo",".odrrrrrrrrropxo",".oddrrrrrrrrppo.","..odddddddddooo.","...ooooooooooo..",E,E,E],
+ block:[E,E,E,"......oooooooo..","....oosssssssoo.","..oossssssssodo.",".ooooooooooo.do.",".opppppppppo.do.",".opppppppppoddo.",".opppppppppoddo.",".opppppppppoddo.",".opppppppppoddo.",".opppppppppodo..",".ooooooooooooo..",E,E],
+ foil:[E,E,E,"......oooooooo..","....oorrrrrrroo.","..oorrrrrrrrodo.",".ooooooooooo.do.",".orrrrrrrrrro.do".slice(0,16),".oxxxxxxxxxxoddo.".slice(0,16),".oxxwxwxwxxxoddo.".slice(0,16),".orrrrrrrrrrodo.".slice(0,16),".orrrrrrrrrrdo..".slice(0,16),".odddddddddddo..",".ooooooooooooo..",E,E],
+ slab:[E,E,E,E,"..ooooooooooooo.","..osssxssxssxso.","..ossxssxssxsso.","..osxssxssxssso.","..oxssxssxssxso.","..opppppppppppo.","..oqqqqqqqqqqqo.","..ooooooooooooo.",E,E,E,E],
+ square:[E,E,E,"..oooooooooooo..","..osssssssssso..","..osxxsssxxsso..","..osxxsssxxsso..","..osssssssssso..","..osssssssssso..","..osxxsssxxsso..","..osxxsssxxsso..","..osssssssssso..","..oddddddddddo..","..oooooooooooo..",E,E],
+ tub:[E,E,E,"...oooooooooo...","..owwppppppppo..","..opppppppppqo..","..oooooooooooo..","..orrrrrrrrrro..","..orrrrrrrrrdo..","...orrrrrrrrdo..","...oxxxxxxxxdo..","...orrrrrrrrdo..","...orrrrrrrddo..","...oooooooooo...",E,E],
+ basket:[E,E,E,"...oooooooooo...","..owwppppppppo..","..opppppppppqo..","..oooooooooooo..","..oxyxyxyxyxyo..","..oyxyxyxyxyxo..","...oxyxyxyxyo...","...oyxyxyxyxo...","....oooooooo....",E,E,E,E]
+};
+/* per-cheese look: shape + accent colors (x, y) + optional color overrides */
+const LOOK={
+ brie:{shape:"wedge",rind:"#efe9db"},
+ camembert:{shape:"box",x:"#dcc398",y:"#c2a374",w:"#f7f2e6",z:"#8a6a48"},
+ mozzarella:{shape:"ball"},
+ burrata:{shape:"pouch"},
+ ricotta:{shape:"basket",x:"#d2ad72",y:"#b38c57",paste:"#f8f5ee"},
+ feta:{shape:"block",paste:"#f7f4ec",rind:"#efeadf",crumb:true},
+ halloumi:{shape:"slab",rind:"#efe3c4",x:"#a07a52"},
+ "cream-cheese":{shape:"foil",rind:"#cdd3d8",x:"#8fa5b8",w:"#e9edf0"},
+ creamcheese:{shape:"foil",rind:"#cdd3d8",x:"#8fa5b8",w:"#e9edf0"},
+ mascarpone:{shape:"tub",x:"#c9b98f"},
+ chevre:{shape:"log",x:"#6f6a64"},
+ taleggio:{shape:"square",rind:"#e2b48e",x:"#c78f68"},
+ livarot:{shape:"banded",x:"#9c8256"},
+ reblochon:{shape:"flat"},
+ munster:{shape:"flat"},
+ "saint-nectaire":{shape:"flat",spots:"#a9a094"},
+ epoisses:{shape:"openbox",x:"#d6bb8c",y:"#bd9c6c",w:"#f3c79a"},
+ cheddar:{shape:"block"},
+ gouda:{shape:"cutwheel",rind:"#d9b45c"},
+ emmental:{shape:"wedgeholes"},
+ gruyere:{shape:"cutwheel"},
+ parmigiano:{shape:"drum",x:"#9e8460"},
+ "parmigiano-reggiano":{shape:"drum",x:"#9e8460"},
+ "pecorino-romano":{shape:"drum"},
+ pecorino:{shape:"drum"},
+ manchego:{shape:"zigzag",x:"#8f7a58"},
+ comte:{shape:"wedge"},
+ mimolette:{shape:"cannon"},
+ roquefort:{shape:"foil",rind:"#cdd3d8",x:"#7f95ab",w:"#e9edf0",blueface:true},
+ gorgonzola:{shape:"wedge"},
+ stilton:{shape:"cutwheel"}
+};
+function hex2rgb(h){h=h.replace("#","");if(h.length==3)h=h.split("").map(c=>c+c).join("");const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]}
+function shade(h,f){const c=hex2rgb(h);return"rgb("+c.map(v=>Math.max(0,Math.min(255,Math.round(f<0?v*(1+f):v+(255-v)*f)))).join(",")+")"}
+function draw(cv,c){
+  const g=cv.getContext("2d"); g.clearRect(0,0,16,16);
+  const L=Object.assign({},LOOK[c.id]||{},c.look||{});
+  const shape=SH[L.shape]||SH[c.shape]||SH.wheel;
+  const rind=L.rind||c.rind||"#e3d3a8", paste=L.paste||c.paste||"#f2dc9a";
+  const blue=c.texture==="블루";
+  const eyes=/gouda|cheddar|gruyere|comte|manchego/.test(c.id||"");
+  const pal={o:"#3a322c",r:rind,s:shade(rind,.28),d:shade(rind,-.2),p:paste,q:shade(paste,-.14),
+    w:L.w||"#ffffff",x:L.x||rind,y:L.y||shade(rind,-.2),z:L.z||"#3a322c"};
+  if(L.shape==="ball"||L.shape==="pouch"||L.shape==="cannon"){
+    const base=L.shape==="cannon"?rind:paste; pal.s=base; pal.d=shade(base,-.16); pal.w=shade(base,.65);
+    if(L.shape==="cannon"){pal.d=shade(rind,-.22);pal.w=shade(rind,.45)}
+  }
+  if(L.shape==="tub"){pal.r="#d8dcd8";pal.d="#b4bab6";pal.x=L.x||"#c9b98f"}
+  if(L.shape==="foil"&&L.blueface){/* show blue paste on front */}
+  for(let y=0;y<16;y++){const row=shape[y]||E;for(let x=0;x<16;x++){
+    const ch=row[x]; if(!ch||ch==="."||ch===" "||!pal[ch])continue;
+    let col=pal[ch];
+    if(ch==="p"){
+      if(blue&&((x*7+y*3)%5===0||(x+y*2)%7===0))col=(x+y)%2?"#6c7d8e":"#8797a6";
+      else if(eyes&&(x*5+y*3)%11===0)col=pal.q;
+      else if(L.crumb&&(x*3+y*5)%7===0)col=pal.q;
+    }
+    if(ch==="x"&&L.shape==="foil"&&L.blueface){col=(x+y)%2?"#6c7d8e":"#e9e4d4"}
+    if(ch==="s"&&L.spots&&(x*5+y*7)%6===0)col=L.spots;
+    if(ch==="s"&&blue&&L.shape==="wedge"&&(x*3+y)%9===0)col="#8797a6";
+    g.fillStyle=col; g.fillRect(x,y,1,1);
+  }}
+}
+function icon(c){const cv=document.createElement("canvas");cv.width=16;cv.height=16;cv.setAttribute("role","img");cv.setAttribute("aria-label",c.name+" 픽셀 아이콘");draw(cv,c);return cv}
+draw($("#logo"),{id:"emmental",rind:"#e2c26a",paste:"#f3db8e",name:"에멘탈",en:"Emmental"});
+
+/* ---------- intro ---------- */
+$("#lead").innerHTML = "<p style='margin:0'>"+esc(I.lead)+"</p>";
+$("#types").innerHTML = I.types.map(t=>`<div class="px type"><b>${esc(t.name)}</b><p style="margin:4px 0">${esc(t.text)}</p><small>예) ${esc(t.examples)}</small></div>`).join("");
+$("#timeline").innerHTML = I.timeline.map(t=>`<div class="px tl"><span class="y">${esc(t.year)}</span><b>${esc(t.title)}</b><p>${esc(t.text)}</p></div>`).join("");
+$("#steps").innerHTML = I.steps.map(t=>`<div class="px step"><b>${esc(t.title)}</b><p>${esc(t.text)}</p></div>`).join("");
+$("#tiplist").innerHTML = I.tips.map(t=>`<li>${esc(t)}</li>`).join("");
+
+/* ---------- filters ---------- */
+const state={q:"",milk:null,texture:null,country:null};
+const ORDER={texture:["생치즈","연성","반경성","경성","블루"],milk:["소","염소","양","물소","혼합"]};
+document.querySelectorAll(".frow").forEach(row=>{
+  const k=row.dataset.key;
+  let vals=[...new Set(A.map(c=>c[k]))];
+  if(ORDER[k]) vals.sort((a,b)=>ORDER[k].indexOf(a)-ORDER[k].indexOf(b)); else {const n={};A.forEach(c=>n[c[k]]=(n[c[k]]||0)+1);vals.sort((a,b)=>n[b]-n[a]||a.localeCompare(b))}
+  ["전체",...vals].forEach(v=>{
+    const b=document.createElement("button");b.className="chip";b.type="button";b.textContent=v;
+    b.setAttribute("aria-pressed",v==="전체"?"true":"false");
+    b.onclick=()=>{state[k]=v==="전체"?null:v;row.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));render();if(k==="country"&&typeof syncMap==="function")syncMap()};
+    row.appendChild(b);
+  });
+});
+$("#q").addEventListener("input",e=>{state.q=e.target.value.trim().toLowerCase();render()});
+
+function meter(n){let s="";for(let i=1;i<=5;i++)s+=`<i class="${i<=n?"on":""}"></i>`;return s}
+function render(){
+  const list=A.filter(c=>{
+    if(state.milk&&c.milk!==state.milk)return false;
+    if(state.texture&&c.texture!==state.texture)return false;
+    if(state.country&&c.country!==state.country)return false;
+    if(state.q){const hay=[c.name,c.en,c.country,c.region,c.milk,c.texture,...(c.taste||[]),c.desc].join(" ").toLowerCase();if(!hay.includes(state.q))return false}
+    return true;
+  });
+  const grid=$("#grid"); grid.innerHTML="";
+  $("#count").textContent=list.length+" / "+A.length+"종";
+  if(!list.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">조건에 맞는 치즈가 없어요.</div>';return}
+  list.forEach(c=>{
+    const d=document.createElement("article");d.className="px card";d.tabIndex=0;d.setAttribute("role","button");
+    d.innerHTML=`<div class="ic"></div><h3>${esc(c.name)}</h3><div class="en">${esc(c.en)} · ${esc(c.country)}</div>
+      <div class="tags"><span class="tag">${esc(c.milk)}젖</span><span class="tag">${esc(c.texture)}</span></div>
+      <div class="meter">맛 강도&nbsp;${meter(c.intensity||0)}</div>`;
+    d.querySelector(".ic").appendChild(icon(c));
+    d.onclick=()=>open(c); d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open(c)}};
+    grid.appendChild(d);
+  });
+}
+function open(c){
+  const m=$("#mbox");
+  m.innerHTML=`<button class="close" aria-label="닫기">✕</button>
+   <div class="mhead"><div></div><div><h3>${esc(c.name)}</h3><div class="en">${esc(c.en)} · ${esc(c.country)} ${esc(c.region)}</div>
+   <div class="tags">${(c.taste||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div></div></div>
+   <div class="facts">
+     <div class="fact"><small>원유</small>${esc(c.milk)}젖</div>
+     <div class="fact"><small>질감</small>${esc(c.texture)}</div>
+     <div class="fact"><small>숙성 기간</small>${esc(c.aging)}</div>
+     <div class="fact"><small>지방(고형분 중)</small>${esc(c.fat)}</div>
+     <div class="fact"><small>맛 강도</small><span class="meter" style="margin:4px 0 0">${meter(c.intensity||0)}</span></div>
+   </div>
+   <p>${esc(c.desc)}</p>
+   <h4>▸ 역사</h4><p>${esc(c.history)}</p>
+   <h4>▸ 즐기는 법</h4><p>${esc(c.uses)}</p>
+   <h4>▸ 잘 어울리는 것</h4><div class="tags">${(c.pairings||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+   <h4>▸ 알고 계셨나요?</h4><p>${esc(c.trivia)}</p>`;
+  m.querySelector(".mhead>div").replaceWith(icon(c));
+  m.querySelector(".close").onclick=()=>$("#modal").close();
+  $("#modal").showModal();
+}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")e.target.close()});
+
+/* theme */
+const root=document.documentElement;
+try{const t=localStorage.getItem("cheese-theme");if(t)root.dataset.theme=t}catch(e){}
+$("#theme").onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;root.dataset.theme=dark?"light":"dark";try{localStorage.setItem("cheese-theme",root.dataset.theme)}catch(e){};syncMap()};
+
+
+/* ---------- pixel map ---------- */
+const MAP={lon0:-13,lat1:61,step:.5,w:98,h:54};
+const LAND=[
+ {c:"스페인",p:[[-9,43.5],[-1.8,43.4],[3.2,42.4],[3.3,41.8],[0.5,40.5],[-0.3,39.4],[0.2,38.7],[-0.7,37.6],[-2.2,36.7],[-5.4,36],[-6.4,36.8],[-7.4,37.2],[-8.9,37],[-8.8,38.7],[-9.5,39.4],[-8.7,41],[-8.9,42.5]]},
+ {c:"프랑스",p:[[-1.8,43.4],[-1.2,46],[-2.3,47.1],[-4.7,48.4],[-1.6,48.7],[-1.3,49.7],[0.2,49.5],[1.6,50.9],[2.5,51.1],[4.2,49.9],[6,49.4],[8.2,49],[7.6,47.6],[6,46.2],[7,45.3],[7.5,43.8],[6,43.1],[4.6,43.4],[3.2,42.4]]},
+ {c:"프랑스",p:[[8.6,43],[9.5,42.9],[9.2,41.4],[8.7,41.8]]},
+ {c:"스위스",p:[[6,46.2],[7.6,47.6],[9.6,47.5],[10.4,46.6],[9,45.8],[7,45.9]]},
+ {c:"이탈리아",p:[[7,45.9],[7,45.3],[7.5,43.8],[8.8,44.4],[10.2,43.9],[11,42.4],[12.5,41.4],[14,40.8],[15.7,40],[15.6,38],[16.1,38],[17.1,39],[16.5,40.3],[18.5,40.1],[16,41.6],[14,42.7],[12.3,44.4],[12.4,45.4],[13.7,45.7],[13.7,46.5],[10.4,46.6],[9,45.8]]},
+ {c:"이탈리아",p:[[12.4,38.1],[15.6,38.3],[15.1,36.7],[12.5,37.6]]},
+ {c:"이탈리아",p:[[8.2,41],[9.8,41.1],[9.6,39.1],[8.4,39]]},
+ {c:"영국",p:[[-5.7,50],[1.4,51.2],[1.7,52.7],[0.2,53.5],[-0.6,54.5],[-1.7,55.6],[-2,57.5],[-1.8,57.6],[-3.5,58.6],[-5,58.6],[-6.2,57.5],[-5.6,55.5],[-4.9,54.8],[-3.2,54.9],[-3,53.4],[-4.6,53.2],[-4.2,52.2],[-5.3,51.8],[-3,51.3],[-4.2,51.2]]},
+ {c:"",p:[[-6,52.2],[-6.2,54],[-5.6,54.5],[-7.3,55.3],[-8.5,54.6],[-10,53.4],[-9.6,52],[-10.3,51.6],[-8.3,51.8]]},
+ {c:"네덜란드",p:[[3.4,51.4],[4.6,53],[7.1,53.3],[6.1,51.9],[6,50.8],[5.8,51.2]]},
+ {c:"",p:[[2.5,51.1],[3.4,51.4],[5.8,51.2],[6,50.8],[6.2,49.6],[4.2,49.9]]},
+ {c:"",p:[[6.2,49.6],[6,50.8],[6.1,51.9],[7.1,53.3],[8.6,53.9],[9.9,54.8],[11,54],[14.2,53.9],[14.6,52.6],[15,51],[12.1,50.3],[13.8,48.8],[13,47.5],[9.6,47.5],[7.6,47.6],[8.2,49],[6,49.4]]},
+ {c:"",p:[[8.1,55.5],[8.6,57.1],[10.6,57.7],[10.6,56.5],[10,55.1],[9.9,54.8],[8.6,53.9]]},
+ {c:"",p:[[14.2,53.9],[18.5,54.8],[21,55.3],[28,56],[35,56],[35,46],[30,46],[28,45],[29.6,45.2],[28.6,43.8],[28,42],[26.3,41.7],[22.5,41.1],[20.5,40],[19.3,41.9],[18.4,42.5],[15.2,44.3],[13.7,45.6],[13.7,46.5],[13,47.5],[13.8,48.8],[12.1,50.3],[15,51],[14.6,52.6]]},
+ {c:"그리스",p:[[20.5,40],[22.5,41.1],[26.3,41.7],[26,40.8],[23.7,40.2],[22.7,39.5],[24,38.2],[23,37.5],[22.5,36.4],[21.7,36.8],[21.1,38.3],[20.2,39.6]]},
+ {c:"그리스",p:[[23.5,35.6],[26.3,35.3],[26,35],[23.6,35.2]]},
+ {c:"",p:[[26,40.8],[26.3,41.7],[28,42],[29,41.2],[31,41.1],[35,42],[35,36.5],[32.5,36.1],[30.6,36.7],[29.5,36.3],[27.4,37],[26.2,39.4]]},
+ {c:"키프로스",p:[[32.3,35],[33,35.4],[34.6,35.7],[34,34.9],[33,34.6]]},
+ {c:"",p:[[5,58.5],[5,61.5],[35,61.5],[35,60],[23,60],[21.4,60.5],[18.9,60],[17.9,58.9],[16.5,57],[14.4,55.4],[12.9,55.4],[12.6,56.2],[11.6,58.1],[10.5,59.2],[8.3,58.1],[6.6,58.1]]},
+ {c:"",p:[[-11,33],[-6,35.8],[-2,35.1],[3,36.8],[10,37.3],[11,36.9],[10.5,33]]},
+ {c:"",p:[[35,36.5],[35,33],[34.2,33],[35,35]]}
+];
+const US=[[-124,48],[-95,49],[-89,48],[-83,46],[-82,42],[-79,43],[-75,45],[-67,45],[-70,41.5],[-74,40.5],[-76,35],[-81,31],[-80,25.5],[-82.6,27.8],[-85,30],[-89,30.2],[-94,29.6],[-97,26],[-100,28],[-104,29.5],[-106.5,31.8],[-111,31.3],[-117,32.5],[-120.5,34.5],[-124,40]];
+const INSET={x:3,y:6,w:30,h:16,lon0:-126,lat1:50,step:2};
+function inPoly(x,y,P){let r=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const[xi,yi]=P[i],[xj,yj]=P[j];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))r=!r}return r}
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function drawMap(sel){
+  const cv=$("#mapcv"),g=cv.getContext("2d");
+  const sea=cssv("--panel2"),land=cssv("--shadow"),hot=cssv("--accent-soft"),on=cssv("--accent"),line=cssv("--line"),grid=cssv("--bg");
+  g.fillStyle=sea;g.fillRect(0,0,MAP.w,MAP.h);
+  g.fillStyle=grid;for(let y=0;y<MAP.h;y+=6)for(let x=(y/6%2)*3;x<MAP.w;x+=6)g.fillRect(x,y,1,1);
+  const owner=(x,y)=>{const lon=MAP.lon0+(x+.5)*MAP.step,lat=MAP.lat1-(y+.5)*MAP.step;for(const L of LAND)if(inPoly(lon,lat,L.p))return L.c;return null};
+  const O=[];for(let y=0;y<MAP.h;y++){O[y]=[];for(let x=0;x<MAP.w;x++)O[y][x]=owner(x,y)}
+  // inset US
+  for(let y=0;y<MAP.h;y++)for(let x=0;x<MAP.w;x++){const c=O[y][x];if(c===null)continue;
+    g.fillStyle=c&&c===sel?on:c&&COUNTRIES[c]?hot:land;g.fillRect(x,y,1,1);
+    // outline where neighbor differs
+    const n=[[1,0],[0,1]];for(const[dx,dy]of n){const o=(O[y+dy]||[])[x+dx];if(o!==undefined&&o!==c&&o!==null&&c!==""&&COUNTRIES[c]){}}
+  }
+  // coastline / borders
+  g.fillStyle=line;
+  for(let y=0;y<MAP.h;y++)for(let x=0;x<MAP.w;x++){const c=O[y][x];if(c===null)continue;
+    const up=(O[y-1]||[])[x],lf=O[y][x-1];
+    if(up===null||up===undefined&&y===0){} 
+    if(y>0&&up===null)g.fillRect(x,y,1,1);
+    else if(lf===null&&x>0)g.fillRect(x,y,1,1);
+    else if(y>0&&up!==c&&up!==null&&(COUNTRIES[c]||COUNTRIES[up])){g.globalAlpha=.35;g.fillRect(x,y,1,1);g.globalAlpha=1}
+    else if(x>0&&lf!==c&&lf!==null&&(COUNTRIES[c]||COUNTRIES[lf])){g.globalAlpha=.35;g.fillRect(x,y,1,1);g.globalAlpha=1}
+  }
+  // inset frame
+}
+const COUNTRIES={};A.forEach(c=>{COUNTRIES[c.country]=(COUNTRIES[c.country]||0)+1});
+const PINS={"프랑스":[2.5,47.3],"이탈리아":[12.6,43],"그리스":[22,39.6],"키프로스":[33.2,35.5],"영국":[-1.6,53],"네덜란드":[5.6,52.6],"스위스":[8.4,46.9],"스페인":[-3.7,40.3]};
+function pinPos(c){if(c==="미국")return[0,MAP.h*.62];const p=PINS[c];if(!p)return null;return[(p[0]-MAP.lon0)/MAP.step,(MAP.lat1-p[1])/MAP.step]}
+const mapwrap=$("#mapwrap");
+Object.keys(COUNTRIES).forEach(c=>{const pp=pinPos(c);if(!pp)return;
+  const b=document.createElement("button");b.type="button";b.className="pin";b.dataset.c=c;
+  b.style.left=(pp[0]/MAP.w*100)+"%";b.style.top=(pp[1]/MAP.h*100)+"%";
+  if(c==="미국")b.classList.add("edge");if(c==="프랑스")b.classList.add("main");
+  b.innerHTML=(c==="미국"?"← ":c==="프랑스"?"★ ":"")+esc(c)+"<b>"+COUNTRIES[c]+"</b>";b.setAttribute("aria-label",c+" 치즈 "+COUNTRIES[c]+"종 보기");
+  b.onclick=()=>{setCountry(state.country===c?null:c);document.getElementById("dex").scrollIntoView({behavior:"smooth"})};
+  mapwrap.appendChild(b)});
+function setCountry(c){state.country=c;
+  const row=document.querySelector('.frow[data-key="country"]');row.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",(c?x.textContent===c:x.textContent==="전체")?"true":"false"));
+  syncMap();render()}
+function syncMap(){mapwrap.querySelectorAll(".pin").forEach(p=>p.classList.toggle("on",p.dataset.c===state.country));drawMap(state.country)}
+
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncMap);
+render();syncMap();
+})();
+</script>
+</body>
+</html>
