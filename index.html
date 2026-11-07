@@ -54,7 +54,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 }
 header.top{padding:40px 0 24px}
 .brand{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
-.brand canvas{width:96px;height:96px}
+.brand canvas{width:156px;height:96px} #logo{display:none}
 h1{font-family:"Galmuri14","Galmuri11",monospace;font-size:30px;margin:0;letter-spacing:1px;line-height:1.3}
 .sub{color:var(--muted);margin:4px 0 0}
 nav.tabs{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0 8px}
@@ -139,18 +139,28 @@ dialog::backdrop{background:rgba(30,26,22,.55)}
 .pin.main b{color:#2e2925}
 .maphint{margin:10px 0 0;color:var(--muted);font-size:12px}
 @media (max-width:640px){.pin{font-size:10px;padding:0 3px}.pin b{display:none}}
+.card .ic{position:relative}
+.card:hover canvas,.card:focus-visible canvas{animation:hop .6s steps(1,end) infinite}
+@keyframes hop{0%{transform:translateY(0)}35%{transform:translateY(-6px)}70%{transform:translateY(0)}}
+.card .ic::after{content:"";position:absolute;top:14px;right:22%;width:6px;height:6px;background:var(--accent);opacity:0;
+  box-shadow:6px 0 var(--accent),-6px 0 var(--accent),0 6px var(--accent),0 -6px var(--accent)}
+.card:hover .ic::after,.card:focus-visible .ic::after{animation:spark .6s steps(1,end) infinite}
+@keyframes spark{0%{opacity:0}35%{opacity:1}70%{opacity:0}}
+dialog[open] .mbox{animation:pop .27s steps(1,end)}
+@keyframes pop{0%{transform:scale(.7);opacity:.4}33%{transform:scale(.92);opacity:1}66%{transform:scale(1.04)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.card:hover canvas,.card:focus-visible canvas,.card:hover .ic::after,.card:focus-visible .ic::after,dialog[open] .mbox{animation:none}}
 .tips{padding:16px 22px}
 .tips li{margin:6px 0}
 footer{color:var(--muted);text-align:center;padding:30px 0 50px;font-size:12px}
 @media (max-width:600px){ nav.tabs{flex-wrap:nowrap;overflow-x:auto;padding:4px;gap:10px} nav.tabs a,#theme{white-space:nowrap;flex:none} }
-@media (max-width:520px){ h1{font-size:22px} .brand canvas{width:64px;height:64px} #theme{margin-left:0} }
+@media (max-width:520px){ h1{font-size:22px} .brand canvas{width:104px;height:64px} #theme{margin-left:0} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <canvas id="logo" width="16" height="16"></canvas>
+      <canvas id="logo" width="16" height="16"></canvas><canvas id="stage" width="26" height="16" role="img" aria-label="치즈를 갉아먹는 픽셀 생쥐"></canvas>
       <div>
         <h1>픽셀 치즈 백과</h1>
         <p class="sub">세계의 치즈 28종을 한 칸 한 칸 기록한 작은 도감</p>
@@ -878,6 +888,36 @@ function draw(cv,c){
 }
 function icon(c){const cv=document.createElement("canvas");cv.width=16;cv.height=16;cv.setAttribute("role","img");cv.setAttribute("aria-label",c.name+" 픽셀 아이콘");draw(cv,c);return cv}
 draw($("#logo"),{id:"emmental",rind:"#e2c26a",paste:"#f3db8e",name:"에멘탈",en:"Emmental"});
+/* ---------- header mascot: a mouse nibbling the wedge ---------- */
+(function(){
+  const st=$("#stage"),g=st.getContext("2d"),logo=$("#logo"),OX=10;
+  const M={walk1:["....gge..","...ggggk.","t.ggggggn",".tggggg..","..k.k...."],
+           walk2:["....gge..","...ggggk.","t.ggggggn",".tggggg..","...k.k..."],
+           nib:  ["....gg...","...gggge.","t.gggggk.",".tggggggn","..k.k...."]};
+  const MC={g:"#9a9088",e:"#d9a3a3",k:"#3a322c",n:"#d98a8a",t:"#7d746c"};
+  let mx=-10,frame="walk1",flip=false,bites=[];
+  function paint(){
+    g.clearRect(0,0,26,16); g.drawImage(logo,OX,0);
+    bites.forEach(([x,y])=>g.clearRect(OX+x,y,2,2));
+    if(mx>-10){const f=M[frame];for(let y=0;y<5;y++)for(let x=0;x<9;x++){const ch=f[y][x];if(ch==="."||!MC[ch])continue;
+      g.fillStyle=MC[ch];g.fillRect(flip?mx+8-x:mx+x,10+y,1,1)}}
+  }
+  paint();
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  async function cycle(){
+    flip=false;
+    for(mx=-9;mx<=2;mx++){frame=mx%2?"walk1":"walk2";paint();await wait(130)}
+    for(let i=0;i<6;i++){frame=i%2?"walk1":"nib";paint();await wait(180)}
+    if(bites.length>=2)bites=[]; else bites.push(bites.length?[1,12]:[1,10]);
+    frame="walk1";paint();await wait(500);
+    flip=true;
+    for(;mx>=-10;mx--){frame=mx%2?"walk1":"walk2";paint();await wait(110)}
+    paint(); setTimeout(cycle,6000+Math.random()*3000);
+  }
+  setTimeout(cycle,2500);
+})();
+
 
 /* ---------- intro ---------- */
 $("#lead").innerHTML = "<p style='margin:0'>"+esc(I.lead)+"</p>";
